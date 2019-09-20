@@ -9,7 +9,7 @@ from ast2json import ast2json
 from flask import Flask, g
 from flask_restful import Resource, Api, reqparse
 
-plugin_name = "python-plugin"
+plugin_name = "pyplugin"
 
 eto_fields = [
 "filename",
