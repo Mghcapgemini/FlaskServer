@@ -17,6 +17,12 @@ eto_fields = [
 "charset"
 ]
 
+merge_fields = [
+"baseContent",
+"patchContent",
+"patchOverrides"
+]
+
 # Create an instance of Flask
 app = Flask(__name__)
 
@@ -35,7 +41,7 @@ class isValidInput(Resource):
 
         # Parse the arguments into an object
         args = parser.parse_args()
-        extension = os.path.splitext(os.path.basename(args['filename']))[1]
+        extension = os.path.splitext(os.path.basename(args['filename']))[-1]
         return extension == ".py"
 
 class getInputModel(Resource):
@@ -49,10 +55,22 @@ class getInputModel(Resource):
         content = args['content']
         path = args['filename']
         parsed_ast = ast.parse(content)
-
-
         return {'path': path, 'model': ast2json(parsed_ast)}
+
+class merge(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        for field in merge_fields:
+            parser.add_argument(field, required=True)
+
+        # Parse the arguments into an object
+        args = parser.parse_args()
+        patchOverrides = args['patchOverrides'] in [True , "True", "true", 1]
+        if patchOverrides:
+            return args['patchContent']
+        return args['baseContent']
 
 api.add_resource(Connection,f'/processmanagement/{plugin_name}/isConnectionReady')
 api.add_resource(isValidInput, f'/processmanagement/{plugin_name}/isValidInput')
 api.add_resource(getInputModel, f'/processmanagement/{plugin_name}/getInputModel')
+api.add_resource(merge, f'/processmanagement/{plugin_name}/merge')
